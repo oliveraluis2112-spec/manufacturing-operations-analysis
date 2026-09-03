@@ -211,11 +211,14 @@ Los resultados obtenidos permiten identificar áreas de la operación que pueden
 * SQL Server Management Studio (SSMS)
 * SQL
 * BULK INSERT
+* SELECT
+* WHERE
 * CASE
 * GROUP BY
 * HAVING
+* ORDER BY
+* COUNT
+* SUM
+* AVG
+* CAST
 * DATEDIFF
-* Funciones de agregación
-* CTE
-* Funciones de ventana
-* Consultas de validación y análisis de datos
