@@ -1,37 +1,29 @@
-# Manufacturing Operations Analysis
+# Análisis de Operaciones de Manufactura
 
-## 1. Overview
+## 1. Descripción del proyecto
 
-This project analyzes manufacturing operations using SQL Server. The objective is to evaluate operational performance based on production times, machine availability, energy consumption, delays and job status.
+Este proyecto analiza datos de operaciones de manufactura utilizando SQL Server. El objetivo es evaluar el desempeño de las máquinas y operaciones a partir de indicadores relacionados con tiempos de producción, retrasos, disponibilidad, consumo de energía y estado de los trabajos.
 
-The analysis compares scheduled and actual execution times to identify delays, deviations and potential areas for operational improvement. The project also evaluates machine and operation performance to understand which areas may require further attention.
+El análisis compara los tiempos programados con los tiempos reales de ejecución para identificar desviaciones y oportunidades de mejora en la operación.
 
-The entire analysis was developed using SQL Server and SQL queries, from data loading and validation to exploratory analysis and business-oriented analysis.
+## 2. Problema de negocio
 
----
+En una operación de manufactura es importante conocer qué máquinas y procesos presentan mayores retrasos, niveles de fallas o consumos de energía, así como identificar diferencias entre los tiempos planificados y los tiempos reales.
 
-## 2. Business Problem
+A partir de los datos disponibles, se plantearon preguntas de negocio orientadas a evaluar:
 
-Manufacturing operations generate large amounts of operational data that can be used to evaluate production performance.
+* Retrasos en el inicio de los trabajos.
+* Desempeño de las máquinas.
+* Porcentaje de trabajos fallidos.
+* Consumo de energía.
+* Desviaciones entre tiempos programados y reales.
+* Relación entre disponibilidad y retrasos.
+* Desempeño según el tipo de operación.
 
-The main objective of this analysis is to answer questions such as:
-
-* Which machines have the highest average delays?
-* Which operations experience the greatest delays?
-* Which machines have the highest failure rates?
-* Which operations have the highest energy consumption?
-* How different are actual processing times from scheduled times?
-* Which machines combine high availability with lower delays?
-* Which machine-operation combinations show the greatest operational deviations?
-
-The analysis aims to transform operational records into information that can support the identification of performance issues and optimization opportunities.
-
----
-
-## 3. Project Structure
+## 3. Estructura del proyecto
 
 ```text
-manufacturing-sql-analysis/
+manufacturing-operations-analysis/
 │
 ├── data/
 │   └── hybrid_manufacturing_categorical.csv
@@ -44,416 +36,156 @@ manufacturing-sql-analysis/
 │   ├── 05_exploratory_data_analysis.sql
 │   └── 06_business_analysis.sql
 │
+├── results/
+│   ├── question_01.png
+│   ├── question_02.png
+│   ├── question_03.png
+│   ├── question_04.png
+│   ├── question_05.png
+│   ├── question_06.png
+│   ├── question_07.png
+│   ├── question_08.png
+│   ├── question_09.png
+│   └── question_10.png
+│
 └── README.md
 ```
 
-### SQL Scripts
-
-`01_create_database_and_load_data.sql`
-
-Creates the database and main table and loads the CSV file into SQL Server using `BULK INSERT`.
-
-`02_data_cleaning.sql`
-
-Performs initial data quality checks, including null values, duplicated Job IDs and categorical values.
-
-`03_create_analysis_table.sql`
-
-Creates a separate analysis table based on the original production data.
-
-`04_create_calculated_columns.sql`
-
-Creates calculated variables related to scheduled and actual production times.
-
-`05_exploratory_data_analysis.sql`
-
-Performs an initial exploration of the dataset, including machines, operations, job status, availability, energy consumption and delays.
-
-`06_business_analysis.sql`
-
-Contains the queries developed to answer the main business questions.
-
----
-
 ## 4. Dataset
 
-The dataset contains manufacturing production records associated with different machines and operation types.
+El proyecto utiliza el dataset **Manufacturing Production Data**, que contiene información relacionada con trabajos de manufactura, máquinas, tipos de operación, tiempos de procesamiento, consumo de energía, disponibilidad y estado de los trabajos.
 
-Each row represents a manufacturing job or operation.
+Principales campos utilizados:
 
-### Main Variables
+| Campo                 | Descripción                  |
+| --------------------- | ---------------------------- |
+| Job_ID                | Identificador del trabajo    |
+| Machine_ID            | Identificador de la máquina  |
+| Operation_Type        | Tipo de operación            |
+| Material_Used         | Material utilizado           |
+| Processing_Time       | Tiempo de procesamiento      |
+| Energy_Consumption    | Consumo de energía           |
+| Machine_Availability  | Disponibilidad de la máquina |
+| Scheduled_Start       | Inicio programado            |
+| Scheduled_End         | Fin programado               |
+| Actual_Start          | Inicio real                  |
+| Actual_End            | Fin real                     |
+| Job_Status            | Estado del trabajo           |
+| Optimization_Category | Categoría de eficiencia      |
 
-| Column                  | Description                                |
-| ----------------------- | ------------------------------------------ |
-| `Job_ID`                | Unique identifier of the manufacturing job |
-| `Machine_ID`            | Machine assigned to the job                |
-| `Operation_Type`        | Type of manufacturing operation            |
-| `Material_Used`         | Amount of material used                    |
-| `Processing_Time`       | Processing time of the operation           |
-| `Energy_Consumption`    | Energy consumed during the operation       |
-| `Machine_Availability`  | Availability percentage of the machine     |
-| `Scheduled_Start`       | Scheduled start time                       |
-| `Scheduled_End`         | Scheduled end time                         |
-| `Actual_Start`          | Actual start time                          |
-| `Actual_End`            | Actual end time                            |
-| `Job_Status`            | Status of the manufacturing job            |
-| `Optimization_Category` | Efficiency or optimization category        |
+## 5. Preparación y validación de datos
 
----
+Se realizaron consultas SQL para revisar la estructura y calidad de los datos antes del análisis.
 
-## 5. Data Preparation
+Las principales validaciones fueron:
 
-The first stage of the project consisted of loading the CSV file into SQL Server and validating the structure and quality of the data.
+* Cantidad total de registros.
+* Revisión de registros duplicados.
+* Valores nulos.
+* Valores distintos de estado del trabajo.
+* Tipos de operación existentes.
+* Máquinas registradas.
+* Categorías de optimización.
 
-The following checks were performed:
+Los valores nulos en `Actual_Start` y `Actual_End` fueron conservados cuando correspondían a trabajos que no llegaron a ejecutarse. Estos valores no fueron reemplazados, ya que forman parte del comportamiento real registrado en los datos.
 
-* Total number of records.
-* Null values by column.
-* Duplicated `Job_ID` values.
-* Distinct job statuses.
-* Distinct operation types.
-* Distinct optimization categories.
-* Available machines.
+## 6. Variables calculadas
 
-### Null Values
+Para facilitar el análisis se crearon las siguientes variables:
 
-Null values were not automatically removed from the dataset.
+### Retraso de inicio
 
-Some null values are valid from an operational perspective. For example, a failed job may not have an `Actual_Start` or `Actual_End` value because the operation was not completed.
+Calcula la diferencia entre el inicio real y el inicio programado.
 
-Therefore, these values are maintained as `NULL` and are excluded only from calculations where the required information is unavailable.
-
----
-
-## 6. Calculated Variables
-
-Additional variables were created to support the operational analysis.
-
-### Start Delay
-
-Measures the difference between the scheduled and actual start time.
-
-```sql
-DATEDIFF(MINUTE, Scheduled_Start, Actual_Start)
+```text
+Retraso de inicio = Actual_Start - Scheduled_Start
 ```
 
-Column:
+### Duración programada
 
-`Start_Delay_Minutes`
+Calcula el tiempo planificado para cada trabajo.
 
-### Scheduled Duration
-
-Measures the planned duration of the operation.
-
-```sql
-DATEDIFF(MINUTE, Scheduled_Start, Scheduled_End)
+```text
+Duración programada = Scheduled_End - Scheduled_Start
 ```
 
-Column:
+### Duración real
 
-`Scheduled_Duration_Minutes`
+Calcula el tiempo real de ejecución cuando existen los tiempos reales de inicio y finalización.
 
-### Actual Duration
-
-Measures the actual duration of the operation.
-
-```sql
-DATEDIFF(MINUTE, Actual_Start, Actual_End)
+```text
+Duración real = Actual_End - Actual_Start
 ```
 
-Column:
+### Variación de duración
 
-`Actual_Duration_Minutes`
+Permite identificar si un trabajo tomó más o menos tiempo del programado.
 
-### Duration Variance
-
-Measures the difference between actual and scheduled duration.
-
-```sql
-Actual_Duration_Minutes - Scheduled_Duration_Minutes
+```text
+Variación = Duración real - Duración programada
 ```
 
-Column:
+## 7. Análisis exploratorio
 
-`Duration_Variance_Minutes`
+Se realizaron consultas para obtener una visión general de las operaciones de manufactura, considerando:
 
----
+* Cantidad de trabajos.
+* Cantidad de máquinas.
+* Distribución de operaciones.
+* Estado de los trabajos.
+* Categorías de eficiencia.
+* Disponibilidad promedio por máquina.
+* Consumo de energía.
+* Retrasos promedio.
+* Diferencias entre duración programada y real.
 
-## 7. Exploratory Data Analysis
+## 8. Análisis de negocio
 
-The exploratory analysis provides an initial overview of the manufacturing operations.
+Se plantearon las siguientes preguntas:
 
-The analysis focuses on:
+1. ¿Qué máquinas presentan el mayor retraso promedio de inicio?
+2. ¿Qué tipos de operación presentan mayores retrasos?
+3. ¿Qué máquinas tienen mayor cantidad de trabajos fallidos?
+4. ¿Qué máquinas presentan la mayor tasa de fallas?
+5. ¿Qué tipos de operación presentan mayor consumo de energía?
+6. ¿Qué máquinas presentan mayor consumo de energía?
+7. ¿Qué tipos de operación presentan mayor variación respecto al tiempo programado?
+8. ¿Qué máquinas combinan una alta disponibilidad con menores retrasos?
+9. ¿Qué combinaciones de máquina y operación presentan mayores retrasos?
+10. ¿Qué trabajos presentan las mayores desviaciones respecto a la duración programada?
 
-* Number of jobs.
-* Number of machines.
-* Distribution of operation types.
-* Job status distribution.
-* Optimization categories.
-* Average machine availability.
-* Energy consumption.
-* Average start delays.
-* Differences between scheduled and actual durations.
+Los resultados obtenidos para cada pregunta se encuentran en la carpeta `results/`.
 
-These results provide the initial context required for the subsequent business analysis.
+## 9. Principales hallazgos
 
----
+Los principales hallazgos del análisis se determinarán a partir de los resultados obtenidos en las consultas de negocio.
 
-## 8. Business Analysis
+Se evaluarán principalmente cuatro aspectos:
 
-The following questions were defined to evaluate the operational performance of the manufacturing process.
+* Desempeño y retrasos operativos.
+* Desempeño de las máquinas.
+* Consumo de energía.
+* Cumplimiento de los tiempos programados.
 
-### Question 1. Which machines have the highest average start delay?
+## 10. Conclusiones
 
-The objective is to identify machines with the greatest deviation from the scheduled start time.
+El análisis permite utilizar SQL Server para transformar datos operativos en información útil para evaluar el desempeño de una operación de manufactura.
 
-```sql
-SELECT
-    Machine_ID,
-    COUNT(*) AS Total_Jobs,
-    AVG(CAST(Start_Delay_Minutes AS DECIMAL(10,2)))
-        AS Avg_Start_Delay_Minutes
-FROM Manufacturing_Production_Analysis
-WHERE Start_Delay_Minutes IS NOT NULL
-GROUP BY Machine_ID
-ORDER BY Avg_Start_Delay_Minutes DESC;
-```
+La comparación entre tiempos programados y reales permite identificar desviaciones, mientras que el análisis de disponibilidad, fallas y consumo de energía permite detectar posibles oportunidades de mejora en máquinas y procesos.
 
-**Result and interpretation:** To be completed based on the query results.
+Los resultados finales y las conclusiones específicas se encuentran sustentados en las consultas SQL desarrolladas en el proyecto.
 
----
-
-### Question 2. Which operation types have the highest average delay?
-
-This analysis compares average start delays across different manufacturing operations.
-
-```sql
-SELECT
-    Operation_Type,
-    COUNT(*) AS Total_Jobs,
-    AVG(CAST(Start_Delay_Minutes AS DECIMAL(10,2)))
-        AS Avg_Start_Delay_Minutes
-FROM Manufacturing_Production_Analysis
-WHERE Start_Delay_Minutes IS NOT NULL
-GROUP BY Operation_Type
-ORDER BY Avg_Start_Delay_Minutes DESC;
-```
-
-**Result and interpretation:** To be completed based on the query results.
-
----
-
-### Question 3. Which machines have the highest number of failed jobs?
-
-```sql
-SELECT
-    Machine_ID,
-    COUNT(*) AS Failed_Jobs
-FROM Manufacturing_Production_Analysis
-WHERE Job_Status = 'Failed'
-GROUP BY Machine_ID
-ORDER BY Failed_Jobs DESC;
-```
-
-**Result and interpretation:** To be completed based on the query results.
-
----
-
-### Question 4. Which machines have the highest failure rate?
-
-The failure rate is calculated relative to the total number of jobs processed by each machine.
-
-```sql
-SELECT
-    Machine_ID,
-    COUNT(*) AS Total_Jobs,
-    SUM(
-        CASE
-            WHEN Job_Status = 'Failed' THEN 1
-            ELSE 0
-        END
-    ) AS Failed_Jobs,
-    CAST(
-        SUM(
-            CASE
-                WHEN Job_Status = 'Failed' THEN 1
-                ELSE 0
-            END
-        ) * 100.0 / COUNT(*)
-        AS DECIMAL(5,2)
-    ) AS Failed_Percentage
-FROM Manufacturing_Production_Analysis
-GROUP BY Machine_ID
-ORDER BY Failed_Percentage DESC;
-```
-
-**Result and interpretation:** To be completed based on the query results.
-
----
-
-### Question 5. Which operation types have the highest energy consumption?
-
-```sql
-SELECT
-    Operation_Type,
-    COUNT(*) AS Total_Jobs,
-    SUM(Energy_Consumption) AS Total_Energy_Consumption,
-    AVG(CAST(Energy_Consumption AS DECIMAL(10,2)))
-        AS Avg_Energy_Consumption
-FROM Manufacturing_Production_Analysis
-GROUP BY Operation_Type
-ORDER BY Avg_Energy_Consumption DESC;
-```
-
-**Result and interpretation:** To be completed based on the query results.
-
----
-
-### Question 6. Which machines have the highest energy consumption?
-
-```sql
-SELECT
-    Machine_ID,
-    COUNT(*) AS Total_Jobs,
-    SUM(Energy_Consumption) AS Total_Energy_Consumption,
-    AVG(CAST(Energy_Consumption AS DECIMAL(10,2)))
-        AS Avg_Energy_Consumption
-FROM Manufacturing_Production_Analysis
-GROUP BY Machine_ID
-ORDER BY Avg_Energy_Consumption DESC;
-```
-
-**Result and interpretation:** To be completed based on the query results.
-
----
-
-### Question 7. Which operation types have the greatest duration variance?
-
-This analysis compares actual and scheduled duration.
-
-```sql
-SELECT
-    Operation_Type,
-    COUNT(*) AS Total_Jobs,
-    AVG(CAST(Duration_Variance_Minutes AS DECIMAL(10,2)))
-        AS Avg_Duration_Variance
-FROM Manufacturing_Production_Analysis
-WHERE Duration_Variance_Minutes IS NOT NULL
-GROUP BY Operation_Type
-ORDER BY Avg_Duration_Variance DESC;
-```
-
-**Result and interpretation:** To be completed based on the query results.
-
----
-
-### Question 8. Which machines combine high availability with lower delays?
-
-```sql
-SELECT
-    Machine_ID,
-    AVG(CAST(Machine_Availability AS DECIMAL(10,2)))
-        AS Avg_Availability,
-    AVG(CAST(Start_Delay_Minutes AS DECIMAL(10,2)))
-        AS Avg_Start_Delay
-FROM Manufacturing_Production_Analysis
-WHERE Start_Delay_Minutes IS NOT NULL
-GROUP BY Machine_ID
-ORDER BY Avg_Availability DESC,
-         Avg_Start_Delay ASC;
-```
-
-**Result and interpretation:** To be completed based on the query results.
-
----
-
-### Question 9. Which machine-operation combinations have the highest delays?
-
-```sql
-SELECT
-    Machine_ID,
-    Operation_Type,
-    COUNT(*) AS Total_Jobs,
-    AVG(CAST(Start_Delay_Minutes AS DECIMAL(10,2)))
-        AS Avg_Start_Delay,
-    AVG(CAST(Duration_Variance_Minutes AS DECIMAL(10,2)))
-        AS Avg_Duration_Variance
-FROM Manufacturing_Production_Analysis
-WHERE Start_Delay_Minutes IS NOT NULL
-GROUP BY
-    Machine_ID,
-    Operation_Type
-HAVING COUNT(*) >= 2
-ORDER BY Avg_Start_Delay DESC;
-```
-
-**Result and interpretation:** To be completed based on the query results.
-
----
-
-### Question 10. Which jobs have the greatest deviation from scheduled duration?
-
-```sql
-SELECT TOP 20
-    Job_ID,
-    Machine_ID,
-    Operation_Type,
-    Job_Status,
-    Scheduled_Duration_Minutes,
-    Actual_Duration_Minutes,
-    Duration_Variance_Minutes
-FROM Manufacturing_Production_Analysis
-WHERE Duration_Variance_Minutes IS NOT NULL
-ORDER BY Duration_Variance_Minutes DESC;
-```
-
-**Result and interpretation:** To be completed based on the query results.
-
----
-
-## 9. Key Findings
-
-The main findings will be documented after analyzing the results of the business queries.
-
-The analysis will focus on four areas:
-
-**Operational delays**
-
-Identification of machines and operations with significant delays compared with scheduled production times.
-
-**Machine performance**
-
-Comparison of machine availability, delays, failures and workload.
-
-**Energy consumption**
-
-Analysis of energy consumption across machines and operation types.
-
-**Production efficiency**
-
-Evaluation of differences between scheduled and actual processing times to identify operational deviations.
-
----
-
-## 10. Conclusions
-
-This project demonstrates the use of SQL Server to analyze manufacturing operations and transform operational records into business-oriented information.
-
-The analysis combines data validation, calculated operational metrics, exploratory analysis and business questions to evaluate machine performance, delays, failures, energy consumption and production time deviations.
-
-The final conclusions will be based on the results obtained from the SQL analysis and will identify the main operational patterns and potential areas for improvement.
-
----
-
-## 11. Technologies
+## 11. Tecnologías utilizadas
 
 * SQL Server
 * SQL Server Management Studio (SSMS)
 * SQL
 * BULK INSERT
-* Aggregate Functions
 * CASE
 * GROUP BY
 * HAVING
 * DATEDIFF
-* Window Functions
+* Funciones de agregación
+* CTE
+* Funciones de ventana
+* Consultas de análisis y validación de datos
